@@ -1,0 +1,5 @@
+1.valueerror: too many values to unpack (expected 2)
+In Python, “unpacking” refers to retrieving items from a value. For instance, retrieving items from a list is referred to as “unpacking” that list. 
+When you unpack a list to a variable, the number of variables to which you unpack the list items must be equal to the number of items in the list.
+      my_list = [1, 2, 3, 4, 5]
+      one, two, three, four, five = my_list
