@@ -3,3 +3,11 @@ In Python, “unpacking” refers to retrieving items from a value. For instance
 When you unpack a list to a variable, the number of variables to which you unpack the list items must be equal to the number of items in the list.
       my_list = [1, 2, 3, 4, 5]
       one, two, three, four, five = my_list
+      
+Accessing list of list elements:
+You can access the elements in a list-of-lists by first specifying which list you're interested in and then specifying which element of that list you want. For example, 17 is element 2 in list 0, which is list1[0][2]:
+
+>>> list1 = [[10,13,17],[3,5,1],[13,11,12]]
+>>> list1[0][2]
+17
+
