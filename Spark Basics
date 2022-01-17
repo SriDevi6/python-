@@ -13,4 +13,39 @@ Hadoop MP and Spark
   then we would have to again read the data from this hdfs and process it write the data to hdfs
   so it is going to be slow.
   Everytime you want to run MR Program , the data has to be loaded from HDFS(Disk) to your memory and get it processed and then again the output is thrown back to the disk that is HDFS. This made MR slow
+SP:
+  The data will be initially residing in HDFS. When we write a spark job, the data will be loaded into memory(RAM) , 
+  data will be processed in memory and the intermediate results is also written back to the memory.
+  As the data is residing in memory makes Spark's processing faster compared to MP. so spark is called Distributed IN- MEMORY Framework.
+  
+  When to use SP or MR?
+ Speed:
+   If data has to be processed really fast, then solutions are written using Spark.
+   If data can be processed in some delay (with low latency),then solutions are written using MR.
+  Cost:
+   MR uses disk , which is less in cost compared to RAM used by Spark
+   eg 2TB-4000INR, 12BG-4000INR
+  Based on the priority, Companies adopt either MR or Spark or sometimes both.
+    Data has to be processed really quick, then invest lot of money in spark clusters 
+    or go with else Map Reduce.
+    If you dont require results immediately, Map reduce can be used instead of Spark.
+    
+ Writing MR program means not writting MR Code, instead we can use hive which INTERNALLY uses MR
+ Framework for different big data problems
+ MR- Batch
+ Spark- Batch,Real time (Processing the data asap).
+ Use case:
+ Financial risk estimation:
+ Some people will default the loan ,
+ so big data will help in indentifying the risk in financial institution.
+ 
+   
+ 
+ 
+    
+    
+    
+    
+  
+  
   
