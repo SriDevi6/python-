@@ -1,0 +1,16 @@
+All the big data products are licensed to Apache Software Foundations( ASF). 
+Apache hadoop , Apache Spark, Apache hive , APACHE pig, Apache Sqoop are product of ASF.
+Most of the ASF Products are java based. Most of ASF Products are mostly written in scala. So it is preferred to learn spark using scala.
+
+SPARK- Big data processing Framework
+Hadoop MP and Spark
+  MP:
+  
+  MP uses Disk to perform i/p and o/p operations.
+  Assume we have Data of 10GB which is stored in HDFS (ie disk),
+  we have to write a map reduce job, the op of this map reduce job is written back to hdfs,
+  if we have anothe mr job which would consume this data , 
+  then we would have to again read the data from this hdfs and process it write the data to hdfs
+  so it is going to be slow.
+  Everytime you want to run MR Program , the data has to be loaded from HDFS(Disk) to your memory and get it processed and then again the output is thrown back to the disk that is HDFS. This made MR slow
+  
