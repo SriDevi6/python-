@@ -1,0 +1,9 @@
+RDD-Resilient  Distributed  Dataset. 
+Suppose we perform multiple operations on a RDD, 
+All the RDDS will be created only if you perform an action on the RDD.
+It will simple create a DAG in its memory , DAG (execution plan) would be ready, only when an action is called then only RDDS are created and the eexcution plan is executed.
+
+Persist an RDD.
+  I want an RDD and I use it again and again.
+  Then I can persist the RDD in memory
+  def: saving the RDD in memory so that RDDs are not computed again and again.
