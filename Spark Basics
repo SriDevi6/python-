@@ -32,6 +32,19 @@ SP:
     
  Writing MR program means not writting MR Code, instead we can use hive which INTERNALLY uses MR
  Framework for different big data problems
+ Limitation OF mr?
+  refer img.
+ How Spark is fast?
+   in memory processing combined with its DAG based data processing engine makes Spark very efficient.
+ Spark replacement of Hadoop?
+   Spark is just a processing engine.
+   Spark is not meant to process the data not store the data.
+ Some companies use both MR Cluster and Saprk Cluster.
+   refer img.
+
+ 
+   
+ 
  MR- Batch
  Spark- Batch,Real time (Processing the data asap).
  Use case:
