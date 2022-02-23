@@ -11,3 +11,15 @@ You can access the elements in a list-of-lists by first specifying which list yo
 >>> list1[0][2]
 17
 
+Slicing in python:
+All three arguments are optional, so you can skip them to use the default values (start=0, stop=len(lst), step=1).
+For example, the expression s[2:4] from string 'hello' carves out the slice 'll'
+and the expression s[:3:2] carves out the slice 'hl'. Note that slicing works the same for lists and strings.
+
+You can use a negative step size (e.g., -1) to slice from the right to the left in inverse order. Here’s how you can use this to reverse a list in Python:
+
+# Reverse a List with Slicing
+names = ['Alice', 'Bob', 'Carl', 'Dora']
+names = names[::-1]
+print(names)
+# ['Dora', 'Carl', 'Bob', 'Alice']
