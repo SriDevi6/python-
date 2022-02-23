@@ -1,10 +1,12 @@
 1.valueerror: too many values to unpack (expected 2)
+-------------------------------------------------
 In Python, “unpacking” refers to retrieving items from a value. For instance, retrieving items from a list is referred to as “unpacking” that list. 
 When you unpack a list to a variable, the number of variables to which you unpack the list items must be equal to the number of items in the list.
       my_list = [1, 2, 3, 4, 5]
       one, two, three, four, five = my_list
       
 Accessing list of list elements:
+-------------------------------
 You can access the elements in a list-of-lists by first specifying which list you're interested in and then specifying which element of that list you want. For example, 17 is element 2 in list 0, which is list1[0][2]:
 
 >>> list1 = [[10,13,17],[3,5,1],[13,11,12]]
@@ -12,6 +14,7 @@ You can access the elements in a list-of-lists by first specifying which list yo
 17
 
 Slicing in python:
+------------------
 All three arguments are optional, so you can skip them to use the default values (start=0, stop=len(lst), step=1).
 For example, the expression s[2:4] from string 'hello' carves out the slice 'll'
 and the expression s[:3:2] carves out the slice 'hl'. Note that slicing works the same for lists and strings.
@@ -19,7 +22,29 @@ and the expression s[:3:2] carves out the slice 'hl'. Note that slicing works th
 You can use a negative step size (e.g., -1) to slice from the right to the left in inverse order. Here’s how you can use this to reverse a list in Python:
 
 # Reverse a List with Slicing
+---------------------------------
 names = ['Alice', 'Bob', 'Carl', 'Dora']
 names = names[::-1]
 print(names)
 # ['Dora', 'Carl', 'Bob', 'Alice']
+
+list.reverse() does an in-place reversal and does not return a value
+reversed(_list) does not change _list, but returns a reverse iterable object
+_list[::-1] does not change _list, but returns reversed slice
+example:
+Reversing a list:
+---------------------
+_list = [1,2,3]
+ret1 = list(reversed(_list))
+ret2 = _list[::-1] #reverse order slice
+ret3 = _list.reverse() #no value set in ret3
+print('ret1,ret2,ret3,_list:',ret1,ret2,ret3,_list)
+
+_list = [1,2,3]
+for x in reversed(_list):
+    print(x)
+output:
+ret1,ret2,ret3,_list: [3, 2, 1] [3, 2, 1] None [3, 2, 1]
+3
+2
+1
