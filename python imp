@@ -47,3 +47,14 @@ name_
 Sometimes if you want to use Python Keywords as a variable, function or class names, you can use this convention for that.
 
 You can avoid conflicts with the Python Keywords by adding an underscore at the end of the name which you want to use.
+
+
+
+It depends on how you want to access the import when you refer to it.
+from urllib import request
+# access request directly.
+mine = request()
+
+import urllib.request
+# used as urllib.request
+mine = urllib.request()
