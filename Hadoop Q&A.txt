@@ -1,0 +1,257 @@
+What are Different modes of Hadoop?
+Standalone Mode
+Pseudo Distributed Mode(Single-Node Cluster)
+Fully distributed mode (or multiple node cluster)
+
+Standalone Mode
+1. Default mode for Hadoop
+2. HDFS is not utilized here instead local file system is used for input and output.
+3. Mainly used for debugging purpose.
+4. Custom configuration not required within 3 Hadoop files(mapred-site.xml, core-site.xml,hdfs-site.xml)
+5. Faster that Pseudo-distributed node.
+
+Pseudo-distributed mode
+1.The HDFS is used for input and output.
+2. This is the Single node cluster where all Daemons(Master Node, Data Node, Resource Manager, Node Manager) runs on one node.
+3. Replication factor is 1 for HDFS.
+4. Hadoop is run on a single node in a pseudo(false) distributed mode
+5. Custom configuration required within 3 Hadoop files(mapred-site.xml, core-site.xml,hdfs-site.xml)
+
+Fully-Distributed mode
+1. It is the production mode of Hadoop..This is mainly used in Production phase.
+2. Basically, one machine in the cluster acts as NameNode and another as Resource Manager exclusively. These are masters.
+    Rest nodes act as Data Node and Node Manager. These are the slaves. Data is stored and processed accross multiple nodes.
+3.This setup offers true distributed computing capability and offers built-in reliability, scalability and Fault Tolerance.
+
+ What are the differences between regular FileSystem and HDFS?
+Regular FileSystem: In regular FileSystem, data is maintained in a single system. If the machine crashes, data recovery is challenging due to low fault tolerance. Seek time is more and hence it takes more time to process the data.
+HDFS: Data is distributed and maintained on multiple systems. If a DataNode crashes, data can still be recovered from other nodes in the cluster. 
+5. Why is HDFS fault-tolerant?
+HDFS is fault-tolerant because it replicates data on different DataNodes. By default, a block of data is replicated on three DataNodes.
+ If one node crashes, the data can still be retrieved from other DataNodes. 
+ 
+ Explain the architecture of HDFS.
+    Data is stored in a distributed manner in HDFS. 
+	There are two components of HDFS - name node and data node. 
+	While there is only one name node, there can be multiple data nodes. 
+   Master and slave nodes form the HDFS cluster. The name node is called the master, and the data nodes are called the slaves.
+   For an HDFS service, we have a NameNode that has the master process running on one of the machines and DataNodes, which are the slave nodes.
+   The name node is responsible for the workings of the data nodes. It also stores the metadata It holds information about the various DataNodes, their location, the size of each block, etc
+ The data nodes read, write, process, and replicate the data. They also send signals, known as heartbeats, to the name node. These heartbeats show the status of the data node.
+ DataNodes hold the actual data blocks and send block reports to the NameNode every 10 seconds
+ Data that is written to HDFS is split into blocks, depending on its size. The blocks are randomly distributed across the nodes. 
+ With the auto-replication feature, these blocks are auto-replicated across multiple machines with the condition that no two identical blocks can sit on the same machine. 
+ As soon as the cluster comes up, the DataNodes start sending their heartbeats to the NameNodes every three seconds. 
+ The NameNode stores this information; in other words, it starts building metadata in RAM, which contains information about the DataNodes available in the beginning. 
+ This metadata is maintained in RAM, as well as in the disk.
+ 
+ What are the two types of metadata that a NameNode server holds?
+The two types of metadata that a NameNode server holds are:
+
+Metadata in Disk - This contains the edit log and the FSImage
+Metadata in RAM - This contains the information about DataNodes
+
+9. If you have an input file of 350 MB, how many input splits would HDFS create and what would be the size of each input split?
+By default, each block in HDFS is divided into 128 MB. The size of all the blocks, except the last block, will be 128 MB. For an input file of 350 MB, there are three input splits in total. The size of each split is 128 MB, 128MB, and 94 MB.
+
+Components of Hadoop
+Hadoop is a framework that uses distributed storage and parallel processing to store and manage Big Data. It is the most commonly used software to handle Big Data. There are three components of Hadoop.
+
+Hadoop HDFS - Hadoop Distributed File System (HDFS) is the storage unit of Hadoop.
+Hadoop MapReduce - Hadoop MapReduce is the processing unit of Hadoop.
+Hadoop YARN - Hadoop YARN is a resource management unit of Hadoop.
+
+Features of HDFS
+Provides distributed storage
+Can be implemented on commodity hardware
+Provides data security
+Highly fault-tolerant - If one machine goes down, the data from that machine goes to the next machine
+
+Speculative execution:
+ clone the “long running” task in another node.
+Apache Hadoop does not fix or diagnose slow-running tasks.
+Instead, it tries to detect when a task is running slower than expected and launches another in another node, an equivalent task as a backup (the backup task is called as speculative task). 
+This process is called speculative execution in Hadoop.
+The goal of Speculative execution is reducing the execution time.
+
+. How do you copy data from the local system onto HDFS? 
+The following command will copy data from the local file system onto HDFS:
+
+hadoop fs –copyFromLocal [source] [destination]
+
+Example: hadoop fs –copyFromLocal /tmp/data.csv /user/test/data.csv
+
+In the above syntax, the source is the local path and destination is the HDFS path. Copy from the local system using a -f option (flag option), which allows you to write the same file or a new file to HDFS. 
+
+Top 80 Hadoop Interview Questions and Answers: Sqoop, Hive, HDFS and more
+Lesson 16 of 16By Simplilearn
+
+Last updated on Feb 15, 2022102040
+Top 80 Hadoop Interview Questions and Answers
+Previous
+Table of Contents
+Hadoop Interview QuestionsHDFS Interview Questions - HDFSMapReduce Interview QuestionsHadoop Interview Questions - YARNHadoop Interview Questions - HIVEView More
+Big data has been growing tremendously in the current decade. With Big Data comes the widespread adoption of Hadoop to solve major Big Data challenges. Hadoop is one of the most popular frameworks that is used to store, process, and analyze Big Data. Hence, there is always a demand for professionals to work in this field. But, how do you get yourself a job in the field of Hadoop? Well, we have answers to that!
+
+In this blog, we will talk about the Hadoop interview questions that could be asked in a Hadoop interview. We will look into Hadoop interview questions from the entire Hadoop ecosystem, which includes HDFS, MapReduce, YARN, Hive, Pig, HBase, and Sqoop. 
+
+Looking forward to becoming a Hadoop Developer? Check out the Big Data Hadoop Certification Training course and get certified today.
+Hadoop Interview Questions
+Let’s begin with one of the important topic: HDFS
+
+HDFS Interview Questions - HDFS
+1. What are the different vendor-specific distributions of Hadoop?
+The different vendor-specific distributions of Hadoop are Cloudera, MAPR, Amazon EMR, Microsoft Azure, IBM InfoSphere, and Hortonworks (Cloudera).
+
+Big Data Engineer Master's Program
+Master All the Big Data Skill You Need TodayENROLL NOWBig Data Engineer Master's Program
+2. What are the different Hadoop configuration files?
+The different Hadoop configuration files include:
+
+hadoop-env.sh
+mapred-site.xml
+core-site.xml
+yarn-site.xml
+hdfs-site.xml
+Master and Slaves
+3. What are the three modes in which Hadoop can run?
+The three modes in which Hadoop can run are :
+
+Standalone mode: This is the default mode. It uses the local FileSystem and a single Java process to run the Hadoop services.
+Pseudo-distributed mode: This uses a single-node Hadoop deployment to execute all Hadoop services.
+Fully-distributed mode: This uses separate nodes to run Hadoop master and slave services.
+4. What are the differences between regular FileSystem and HDFS?
+Regular FileSystem: In regular FileSystem, data is maintained in a single system. If the machine crashes, data recovery is challenging due to low fault tolerance. Seek time is more and hence it takes more time to process the data.
+HDFS: Data is distributed and maintained on multiple systems. If a DataNode crashes, data can still be recovered from other nodes in the cluster. Time taken to read data is comparatively more, as there is local data read to the disc and coordination of data from multiple systems.
+5. Why is HDFS fault-tolerant?
+HDFS is fault-tolerant because it replicates data on different DataNodes. By default, a block of data is replicated on three DataNodes. The data blocks are stored in different DataNodes. If one node crashes, the data can still be retrieved from other DataNodes. 
+
+hdfs-data
+
+Hadoop Interview Guide
+Helping You Crack the Interview in the First Go!DOWNLOAD NOWHadoop Interview Guide
+6. Explain the architecture of HDFS. 
+The architecture of HDFS is as shown:
+
+hdfs-architecture
+
+For an HDFS service, we have a NameNode that has the master process running on one of the machines and DataNodes, which are the slave nodes.
+
+NameNode
+NameNode is the master service that hosts metadata in disk and RAM. It holds information about the various DataNodes, their location, the size of each block, etc. 
+
+DataNode
+DataNodes hold the actual data blocks and send block reports to the NameNode every 10 seconds. The DataNode stores and retrieves the blocks when the NameNode asks. It reads and writes the client’s request and performs block creation, deletion, and replication based on instructions from the NameNode.
+
+Data that is written to HDFS is split into blocks, depending on its size. The blocks are randomly distributed across the nodes. With the auto-replication feature, these blocks are auto-replicated across multiple machines with the condition that no two identical blocks can sit on the same machine. 
+As soon as the cluster comes up, the DataNodes start sending their heartbeats to the NameNodes every three seconds. The NameNode stores this information; in other words, it starts building metadata in RAM, which contains information about the DataNodes available in the beginning. This metadata is maintained in RAM, as well as in the disk.
+7. What are the two types of metadata that a NameNode server holds?
+The two types of metadata that a NameNode server holds are:
+
+Metadata in Disk - This contains the edit log and the FSImage
+Metadata in RAM - This contains the information about DataNodes
+8. What is the difference between a federation and high availability?
+HDFS Federation
+
+HDFS High Availability
+
+There is no limitation to the number of NameNodes and the NameNodes are not related to each other
+All the NameNodes share a pool of metadata in which each NameNode will have its dedicated pool
+Provides fault tolerance, i.e., if one NameNode goes down, it will not affect the data of the other NameNode
+There are two NameNodes that are related to each other. Both active and standby NameNodes work all the time
+One at a time, active NameNodes will be up and running, while standby NameNodes will be idle and updating its metadata once in a while
+It requires two separate machines. First, the active NameNode will be configured, while the secondary NameNode will be configured on the other system
+9. If you have an input file of 350 MB, how many input splits would HDFS create and what would be the size of each input split?
+By default, each block in HDFS is divided into 128 MB. The size of all the blocks, except the last block, will be 128 MB. For an input file of 350 MB, there are three input splits in total. The size of each split is 128 MB, 128MB, and 94 MB.
+
+mb-data
+
+Free Course: Getting Started with Hadoop
+Learn the Fundamentals of HadoopENROLL NOWFree Course: Getting Started with Hadoop
+10. How does rack awareness work in HDFS?
+HDFS Rack Awareness refers to the knowledge of different DataNodes and how it is distributed across the racks of a Hadoop Cluster.
+
+rack-awareness
+
+By default, each block of data is replicated three times on various DataNodes present on different racks. Two identical blocks cannot be placed on the same DataNode. When a cluster is “rack-aware,” all the replicas of a block cannot be placed on the same rack. If a DataNode crashes, you can retrieve the data block from different DataNodes.   
+
+11. How can you restart NameNode and all the daemons in Hadoop?
+The following commands will help you restart NameNode and all the daemons:
+
+You can stop the NameNode with ./sbin /Hadoop-daemon.sh stop NameNode command and then start the NameNode using ./sbin/Hadoop-daemon.sh start NameNode command.
+
+You can stop all the daemons with ./sbin /stop-all.sh command and then start the daemons using the ./sbin/start-all.sh command.
+
+12. Which command will help you find the status of blocks and FileSystem health?
+To check the status of the blocks, use the command:
+
+hdfs fsck <path> -files -blocks
+
+To check the health status of FileSystem, use the command:
+
+hdfs fsck / -files –blocks –locations > dfs-fsck.log
+
+13. What would happen if you store too many small files in a cluster on HDFS?
+Storing several small files on HDFS generates a lot of metadata files. To store these metadata in the RAM is a challenge as each file, block, or directory takes 150 bytes for metadata. Thus, the cumulative size of all the metadata will be too large.
+
+14. How do you copy data from the local system onto HDFS? 
+The following command will copy data from the local file system onto HDFS:
+
+hadoop fs –copyFromLocal [source] [destination]
+
+Example: hadoop fs –copyFromLocal /tmp/data.csv /user/test/data.csv
+
+In the above syntax, the source is the local path and destination is the HDFS path. Copy from the local system using a -f option (flag option), which allows you to write the same file or a new file to HDFS. 
+
+15. When do you use the dfsadmin -refreshNodes and rmadmin -refreshNodes commands?
+The commands below are used to refresh the node information while commissioning, or when the decommissioning of nodes is completed. 
+
+dfsadmin -refreshNodes
+
+This is used to run the HDFS client and it refreshes node configuration for the NameNode. 
+
+rmadmin -refreshNodes
+
+This is used to perform administrative tasks for ResourceManager.
+
+16. Is there any way to change the replication of files on HDFS after they are already written to HDFS?
+Yes, the following are ways to change the replication of files on HDFS:
+We can change the dfs.replication value to a particular number in one of the Hadoop Conf file..
+$HADOOP_HOME/conf/hadoop-site.xml
+
+If you want to change the replication factor for a particular file or directory, use:
+
+$HADOOP_HOME/bin/Hadoop dfs –setrep –w4 /path of the file
+
+Example: $HADOOP_HOME/bin/Hadoop dfs –setrep –w4 /user/temp/test.csv
+
+Who takes care of replication consistency in a Hadoop cluster and what do under/over replicated blocks mean?
+In a cluster, it is always the NameNode that takes care of the replication consistency.
+The fsck command provides information regarding the over and under-replicated block. 
+Under-replicated blocks:
+Consider a cluster with three nodes and replication set to three. 
+At any point, if one of the NameNodes crashes, the blocks would be under-replicated. 
+It means that there was a replication factor set, but there are not enough replicas as per the replication factor. 
+If the NameNode does not get information about the replicas, it will wait for a limited amount of time and then start the re-replication of missing blocks from the available nodes. 
+
+Over-replicated blocks:
+
+Consider a case of three nodes running with the replication of three, and one of the nodes goes down due to a network failure. 
+Within a few minutes, the NameNode re-replicates the data, and then the failed node is back with its set of blocks.This is an over-replication situation, and the NameNode will delete a set of blocks from one of the nodes. 
+
+Difference b/w put & copyFromLocal
+-copyFromLocal is restricted to copy from local while -put can take file from any (other HDFS/local filesystem/..)
+
+Hadoop Architecture:
+We can use just commodity hardwares to work with haddop ie system with minimum configurations.
+We only need big powerful machine to be used as master whereas slaves nodes can be generic machines.
+We install hadoop in every machines of the cluster.
+When we intsall Hadoop in our machine, few daemons would come by default.
+These damenos make your hadoop cluster up and running.
+Damenons
+Name node
+Sec Name Node
+Job Tracker -Hadoop 2 dont have 
+Task Tracker-Hadoop 2 dont have 
+Data Node.  
+These Daemons must be up and running in your cluster in order to say that my hadoop is functional
