@@ -1,0 +1,266 @@
+
+Table data:
+https://www.quora.com/Where-is-table-data-stored-in-Apache-Hive-by-default
+
+
+
+Managed Table:
+---------------
+def loc:
+/user/hive/warehouse/databasename.db/tablename/
+
+If a managed table or partition is dropped, the data and metadata associated with that table or partition are deleted
+when to use:
+when generating temporary tables.
+
+Syntax:
+CREATE TABLE IF NOT EXISTS emp.employee (
+ id int,
+ name string,
+ age int,
+ gender string )
+ COMMENT 'Employee Table'
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY ',';
+
+
+
+External tables :
+---------------
+
+External tables can access data stored in sources such as Azure Storage Volumes (ASV) or remote HDFS locations. 
+If the structure or partitioning of an external table is changed, an MSCK REPAIR TABLE table_name statement can be used to refresh metadata information.
+when to use:
+when files are already present or in remote locations, and the files should remain even if the table is dropped.
+
+
+
+
+Any data should be inserted in the Hive table to be processed with Hive-- this is the case with internal tables.
+incorrect
+No, you can use Hive external table to process any data stored in HDFS
+If you noticed we use EXTERNAL and LOCATION options.
+CREATE EXTERNAL TABLE emp.employee_external (
+ id int,
+ name string,
+ age int,
+ gender string)
+ ROW FORMAT DELIMITED
+ FIELDS TERMINATED BY ','
+ LOCATION '/user/hive/data/employee_external';
+ 
+ 
+
+Datatype in Hive:
+------------------------------
+Primitive - integers,string,float,varchar,boolean
+Complex - structs, maps, array
+User defined
+
+
+
+Hive follows Schema on read.
+------------------------------
+Now in HIVE, the data schema is not verified during the load time, rather it is verified while processing the query. 
+Hence this process in HIVE called Schema-on-Read.
+https://data-flair.training/forums/topic/what-is-the-difference-between-schema-on-read-and-schema-on-write/
+In Hive, if we try to load unmatched data (i.e., one or more column data doesn't match the data type of specified table columns), it will not throw any exception. 
+However, it stores the Null value at the position of unmatched data
+
+
+
+Loading the data:
+------------------------------
+There are two ways to load the data.
+First load data from local and another load from HDFS...
+load data local inpath '/home/local/path/sample.txt' into table sample.//Local path
+load data inpath '/home/hadoop/path/sample.txt' into table sample.// Hadoop path
+
+
+
+Metastore:
+------------------------------
+
+Data in Hive is organized into tables, buckets and partitions. So the Hive Metastore can be visualized as a space which will store the Metadata of these tables, buckets and partitions.
+Hive Meta Store is a central repository for the Hive Metadata.
+Whenever developer performs storage OR analysis operation from HIVE (Creation , SELECTION etc.) , Meta data gets created corresponding to that operation and get saved to the some other Database/Client like Oracle, MySQL such clients are called META STORE which holds that Meta Data.
+Hive meta store is the memory where hive stores the information regarding the
+IDs of Database
+IDs of Tables
+IDs of Index
+The time of creation of an Index
+The time of creation of a Table
+IDs of roles assigned to a particular user
+InputFormat used for a Table
+OutputFormat used for a Table etc etc
+Any JDBC compliant database can be used as the metastore for Hive, Derby database is the default metastore which supports one user, so only one shell you can open.
+
+
+
+File format types:
+------------------------------
+
+Apache Hive different file formats such as TextFile, SequenceFile, RCFile, AVRO, ORC and Parquet formats. Cloudera Impala also supports these file formats.
+ORC: Optimized Row Columnar file format.We can store data in hive in an optimized way than the other file formats.
+	 The Use of ORC files improves performance when Hive is reading, writing, and processing data from large tables.
+      To be more specific, ORC reduces the size of the original data up to 75%.
+	  Hence, data processing speed also increases. On comparing to Text, Sequence and RC file formats, ORC shows better performance.
+Parquet: column-oriented binary file format. The parquet is highly efficient for the types of large-scale queries.
+Hive Optimisation:
+-----------------------
+Partioning:
+Managed tables and External tables. Both tables support partitioning mechanism.
+Managed tables can be partitioned using the PARTITIONED BY clause. In a managed table, if you delete a table, then the data of that table will also get deleted. 
+Similarly, if you delete a partition, then the data of that partition will also get deleted.
+If trash isconfigured, then data will be moved to the .Trash/Current directory. 
+If the PURGE option is specified in the drop command, then the partition data will not go to the .Trash/Current directory. 
+This means that data cannot be retrieved in the event of a mistaken drop.
+
+Data partitioning is mainly done for the fast execution of queries.
+
+
+When you have large data with high number of partitions, executing query without any partition filters
+might trigger an enormous MapReduce job. To avoid such cases, there is the map-reduce mode
+configuration hive.mapred.mode, which prevents running risky queries on Hive. The default value of
+hive.mapred.mode is set to nonstrict. This mode specifies how Hive operations are being performed.
+By setting the value of hive.mapred.mode to strict, it will prevent running risky queries.  in
+In strict mode, you cannot run a full table scan query.
+hive> set hive.mapred.mode=strict;
+hive> SELECT * FROM customer c;
+FAILED: Error in semantic analysis: No partition predicate found for Alias "c"
+Table "customer"
+hive> set hive.mapred.mode=nonstrict;
+hive> SELECT * FROM customer c;
+21 john m RJ IN
+
+non partitioned scenario:
+	In non partitioned tables all queries have to scan all files in the table's data directory, This resulting in increased time to retrieve result an also expensive if the data is huge.
+
+partitioned scenario:
+	While we write the query to fetch the values from the table, only the required partitions of the table are queried.Thus it reduces the time taken by the query to yield the result.
+
+
+
+Data loading in Partition:
+	 When you load the data into the partition table, Hive internally splits the records based on the partition key and stores each partition data into a sub-directory of tables directory on HDFS. The name of the directory would be partition key and it’s value.
+	 Data insertion in partitioned tables happpens in two ways/modes.
+	 In Static Partitioning, we have to manually decide how many partitions tables will have and also value for those partitions.
+		 One of the major drawbacks of static partitioning is, when we are loading data to some partition, we have to make sure we are putting the right data in the right partition.
+		 Dynamic Partitioning create partitions automatically depending on the data that we are inserting into the table.
+	   In dynamic partition, we are telling hive which column to use for dynamic partition
+		   By default, Hive does not enable dynamic partition. This is to protect us, from creating from a huge number of partitions accidentally. If we select the wrong column (say order id) we can end up with millions of partitions.
+			Static Partitioning	                                                                Dynamic Partitioning
+			We need to manually create each partition before inserting data into a partition	Partitions will be created dynamically based on input data to the table.
+		n easier way is, we can set Hive’s dynamic property mode to nonstrict using the following command. 
+		set hive.exec.dynamic.partition=true;
+		set hive.exec.dynamic.partition.mode=nonstrict;
+		SET hive.exec.dynamic.partition = true;
+		SET hive.exec.dynamic.partition.mode = nonstrict;
+		You can set this configuration at a session level using Hive shell or at the global level using the
+		Hive configuration file hive-site.xml. After setting up these two properties, you can create
+		dynamic partitions.
+		Every partition created for static and dynamic partitioning is stored in the PARTITIONS table in the
+		metastore 
+		
+		
+		We should avoid using partitions when columns have too many unique rows, while creating dynamic partition as it can lead to high number of partitions, and when limiting partition to less than 20k.
+	Ref:
+	https://analyticshut.com/static-vs-dynamic-partitioning-in-hive/
+	hive cook book
+
+ 
+Cmd to Show All Partitions on Hive Table:
+	After loading the data into the Hive partition table, you can use 
+	 1.SHOW PARTITIONS <tablename>  to see all partitions that are present.
+	 2.SHOW PARTITIONS <tablename>  PARTITION(<artition_name=partition_value) to check if specific parttion exists or not.
+	Alternatively, if you know the Hive store location on the HDFS for your table, you can run the HDFS command to check the partitions.
+	For each partition on the table, you will see a folder created with the partition column name and the partition value.
+
+Modifying Partition
+	MSCK REPAIR is used to synch Hive Metastore with the HDFS data.
+	When you manually modify the partitions ( Adding a new partition or renaming a partition or deleting a partition )directly on HDFS,you need to run MSCK REPAIR TABLE to update the Hive Metastore. Not doing so will result in inconsistent results.
+	SELECT doesn’t show the renamed partition
+	SHOW PARTITIONS still shows the older partition
+
+To know the HDFS location of each partition.
+	DESCRIBE FORMATTED zipcodes PARTITION(state='PR');
+	SHOW TABLE EXTENDED LIKE zipcodes PARTITION(state='PR');
+	Why period_date is used as partition in MDSA Tables?
+	We generally used to analyse and filter the data for particular period date, so period_dateis used as partition column.
+
+Bucketing:
+	At times, there is a huge dataset available.
+	 However, after partitioning on a particular field or fields, the partitioned file size doesn’t match with the actual expectation and remains huge.
+	Still, we want to manage the partition results into different parts. Thus, to solve this issue of partitioning, Hive offers Bucketing concept.
+
+	if we need to optimize queries on a column with high unique column values
+	such as ID, we create buckets on that column as follows:
+	create table sales_buck (id int, fname string, state string, zip string, ip string,
+	pid string) clustered by (id) into 50 buckets  row format delimited fields
+	terminated by '\t';
+	Here, we have defined 50 buckets for this table, which means that the complete dataset is divided and
+	stored in 50 buckets based on the ID column value.
+	By default, bucketing is disabled in Hive. You need to enable bucketing before loading data in a bucketed
+	table by setting the following property:
+	set hive.enforce.bucketing=true;
+
+	key with same hash code is grouped in bucket within a  bucket cluster.
+	The Processor will first calculate the hash code(number) of the id in the select query and only look for that bucket. This tremendously increase the speed up ability to FIND DATA
+	by calculating the hash and get the record out of bucket.
+
+UDF:
+Built-in functions in Hive sometimes do not fit the requirements of a business use case or when data
+analytics required some custom manipulation of data based on certain conditions. For such cases, the user
+needs to define custom logic as a UDF and run it over the data.
+For writing a custom function in Hive, you will have to extend a Hive class:
+org.apache.hadoop.hive.ql.exec.UDF.
+package com.examples.hive;
+import org.apache.hadoop.hive.ql.exec.UDF;
+import org.apache.hadoop.io.Text;
+public class ReverseString extends UDF {
+public Text evaluate(final Text text) {
+// return NULL if value of input is NULL.
+if (text == null) {
+return null;
+}
+// Convert Hadoop Text object to StringBuilder
+StringBuilder stringBuilder = new StringBuilder(text.toString());
+// Derive reverse of string using inbuilt api of StringBuilder
+String reverse = stringBuilder.reverse().toString();
+// Convert String to Hadoop Text object and return that.
+return new Text(reverse);
+}
+}
+
+Order by 
+  This clause will return complete sorted order of the entire dataset.
+  final reducer will take processed dataset and orders them and produces complete sorted o/p.
+  Limitation 
+     Time constraint as single reducers is involved in sorting the final o/p and if no of rows in o/p is too large, the single reducer could take a very long time to finish.
+	 When we are executing orderby in strict mode ,then we'll have to use limit clause with order by  
+
+
+
+
+
+
+
+How to find whether the given table is managed or external?
+Managed or External tables can be identified using the command "DESCRIBE FORMATTED table_name"
+
+ 
+How to find the Table location?
+
+Table location can also get by running SHOW CREATE TABLE command from hive terminal.
+SHOW CREATE TABLE table_name;
+(or)
+DESCRIBE FORMATTED table_name;
+
+What is the Default DB in Hive?
+ If no dbs are created in hive, then it stores the table in derByDB. 
+ DerbyDB is the default DB in hive
+ Deleting indiviual recs:
+ Hive cannot delete individual records, but an RDBMS can.
+ 
+REFERENCE LINKS:
+ https://sparkbyexamples.com/apache-hive/difference-between-hive-internal-tables-and-external-tables/
