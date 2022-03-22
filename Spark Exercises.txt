@@ -1,0 +1,534 @@
+max amount debited from each cust on latest date
+df=spark.read.format("csv").option("header","true").option("inferSchema","true").load("/user/sridevisd617gmail/Spark/personal_data.csv")
+>>> df1 = df.withColumn("date2",df['Date'])
+>>> df1.show(10,False)
++-----------+-------------+--------+-------------------+----------------+-------+--------+
+|Customer_No|Card_type    |Date    |Category           |Transaction Type|Amount |date2   |
++-----------+-------------+--------+-------------------+----------------+-------+--------+
+|1000501    |Platinum Card|1/1/2018|Shopping           |debit           |11.11  |1/1/2018|
+|1000501    |Checking     |1/2/2018|Mortgage & Rent    |debit           |1247.44|1/2/2018|
+|1000501    |Silver Card  |1/2/2018|Restaurants        |debit           |24.22  |1/2/2018|
+|1000501    |Platinum Card|1/3/2018|Credit Card Payment|credit          |2298.09|1/3/2018|
+|1000501    |Platinum Card|1/4/2018|Movies & DVDs      |debit           |11.76  |1/4/2018|
+|1000501    |Silver Card  |1/5/2018|Restaurants        |debit           |25.85  |1/5/2018|
+|1000501    |Silver Card  |1/6/2018|Home Improvement   |debit           |18.45  |1/6/2018|
+|1000501    |Checking     |1/8/2018|Utilities          |debit           |45.0   |1/8/2018|
+|1000501    |Silver Card  |1/8/2018|Home Improvement   |debit           |15.38  |1/8/2018|
+|1000501    |Platinum Card|1/9/2018|Music              |debit           |10.69  |1/9/2018|
++-----------+-------------+--------+-------------------+----------------+-------+--------+
+only showing top 10 rows
+No able to cast the string type to date for date column
+>>> from pyspark.sql.types import IntegerType,BooleanType,DateType
+>>> df1 = df.withColumn("date2",df.Date.cast(DateType())
+... )
+>>> df1.show(10,False)
++-----------+-------------+--------+-------------------+----------------+-------+-----+
+|Customer_No|Card_type    |Date    |Category           |Transaction Type|Amount |date2|
++-----------+-------------+--------+-------------------+----------------+-------+-----+
+|1000501    |Platinum Card|1/1/2018|Shopping           |debit           |11.11  |null |
+|1000501    |Checking     |1/2/2018|Mortgage & Rent    |debit           |1247.44|null |
+|1000501    |Silver Card  |1/2/2018|Restaurants        |debit           |24.22  |null |
+|1000501    |Platinum Card|1/3/2018|Credit Card Payment|credit          |2298.09|null |
+|1000501    |Platinum Card|1/4/2018|Movies & DVDs      |debit           |11.76  |null |
+|1000501    |Silver Card  |1/5/2018|Restaurants        |debit           |25.85  |null |
+|1000501    |Silver Card  |1/6/2018|Home Improvement   |debit           |18.45  |null |
+|1000501    |Checking     |1/8/2018|Utilities          |debit           |45.0   |null |
+|1000501    |Silver Card  |1/8/2018|Home Improvement   |debit           |15.38  |null |
+|1000501    |Platinum Card|1/9/2018|Music              |debit           |10.69  |null |
++-----------+-------------+--------+-------------------+----------------+-------+-----+
+
+Ref:
+casting-string-to-int-null-issue
+
+UDF Approach also dint work
+def stripDQ(string):
+	return string.replace('"', "")
+	
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType, DateType
+udf_stripDQ = udf(stripDQ, StringType())
+df1 = df.withColumn("DATE1", udf_stripDQ(df["Date"]))
+df1.show()
+df2 = df1.select( df1["Date1"].cast(DateType()).alias("DATE1_up"))
+df2.show()
+
+spark.conf.set("spark.sql.legacy.timeParserPolicy","Legacy")
+>> from pyspark.sql.functions import *
+>>> df_cast=df.withColumn("CastedDate",to_date("Date","MM/dd/yyyy"))
+>>> df_cast.show()
++-----------+-------------+---------+-------------------+----------------+-------+----------+
+|Customer_No|    Card_type|     Date|           Category|Transaction Type| Amount|CastedDate|
++-----------+-------------+---------+-------------------+----------------+-------+----------+
+|    1000501|Platinum Card| 1/1/2018|           Shopping|           debit|  11.11|2018-01-01|
+|    1000501|     Checking| 1/2/2018|    Mortgage & Rent|           debit|1247.44|2018-01-02|
+|    1000501|  Silver Card| 1/2/2018|        Restaurants|           debit|  24.22|2018-01-02|
+|    1000501|Platinum Card| 1/3/2018|Credit Card Payment|          credit|2298.09|2018-01-03|
+|    1000501|Platinum Card| 1/4/2018|      Movies & DVDs|           debit|  11.76|2018-01-04|
+|    1000501|  Silver Card| 1/5/2018|        Restaurants|           debit|  25.85|2018-01-05|
+df=spark.read.format("csv").option("header","true").option("inferSchema","true").load("/user/sridevisd617gmail/Spark/personal_data.csv")
+
+spark.conf.set("spark.sql.legacy.timeParserPolicy","Legacy")
+from pyspark.sql.functions import *
+df_cast=df.withColumn("CastedDate",to_date("Date","MM/dd/yyyy"))
+df_filter=df_cast.filter(col(“Transaction Type”)==”debit”)
+df_filter.registerTempTable("mytable")
+spark.sql("select * from (select *,dense_rank() over (partition by Customer_no order by Date desc,Amount desc ) as rn from mytable)A where rn=1 ").show(10)
++-----------+-------------+---------+-------------------+----------------+------+----------+---+
+|Customer_No|    Card_type|     Date|           Category|Transaction Type|Amount|CastedDate| rn|
++-----------+-------------+---------+-------------------+----------------+------+----------+---+
+|    1000531|     Checking|1/23/2018|Credit Card Payment|           debit|309.81|2018-01-23|  1|
+|    1002324|Platinum Card| 3/9/2018|          Groceries|           debit| 20.72|2018-03-09|  1|
+|    1000501|Platinum Card| 1/9/2018|              Music|           debit| 10.69|2018-01-09|  1|
+|    1000210|  Silver Card|3/30/2018|          Groceries|           debit|  9.09|2018-03-30|  1|
+|    1001368|Platinum Card| 3/4/2018|        Restaurants|           debit| 42.24|2018-03-04|  1|
+|    1001863|Platinum Card| 2/9/2018|            Haircut|           debit|  30.0|2018-02-09|  1|
+|    1000654|Platinum Card| 2/4/2018|      Movies & DVDs|           debit| 11.76|2018-02-04|  1|
+>>> from pyspark.sql.window import Window
+>>> from pyspark.sql.functions import *
+>>> windowspec=Window.partitionBy(col("Customer_No")).orderBy(col("Date").desc(),col("Amount").desc())
+>>> df_wind=df_filter.withColumn("row_num", row_number().over(windowspec))
+>>> df_op=df_wind.filter(col("row_num")==1).drop(col("row_num"))
+>>> df_op.show()
++-----------+-------------+---------+-------------------+----------------+------+----------+
+|Customer_No|    Card_type|     Date|           Category|Transaction Type|Amount|CastedDate|
++-----------+-------------+---------+-------------------+----------------+------+----------+
+|    1000531|     Checking|1/23/2018|Credit Card Payment|           debit|309.81|2018-01-23|
+|    1002324|Platinum Card| 3/9/2018|          Groceries|           debit| 20.72|2018-03-09|
+|    1000501|Platinum Card| 1/9/2018|              Music|           debit| 10.69|2018-01-09|
+|    1000210|  Silver Card|3/30/2018|          Groceries|           debit|  9.09|2018-03-30|
+|    1001368|Platinum Card| 3/4/2018|        Restaurants|           debit| 42.24|2018-03-04|
+|    1001863|Platinum Card| 2/9/2018|            Haircut|           debit|  30.0|2018-02-09|
+|    1000654|Platinum Card| 2/4/2018|      Movies & DVDs|           debit| 11.76|2018-02-04|
+
+
+>>> df_maxdate=df_filter.groupBy("Customer_No").agg(max("Date").alias("date"))
+>>> df_joined=df_filter.join(df_maxdate,on=["Customer_No","Date"],how="inner")
+>>> df_joined.show()
++-----------+---------+-------------+-------------------+----------------+------+----------+
+|Customer_No|     Date|    Card_type|           Category|Transaction Type|Amount|CastedDate|
++-----------+---------+-------------+-------------------+----------------+------+----------+
+|    1000501| 1/9/2018|Platinum Card|              Music|           debit| 10.69|2018-01-09|
+|    1000531|1/23/2018|     Checking|Credit Card Payment|           debit|309.81|2018-01-23|
+|    1000654| 2/4/2018|Platinum Card|      Movies & DVDs|           debit| 11.76|2018-02-04|
+|    1001863| 2/9/2018|Platinum Card|            Haircut|           debit|  30.0|2018-02-09|
+|    1001863| 2/9/2018|Platinum Card|              Music|           debit| 10.69|2018-02-09|
+|    1001368| 3/4/2018|Platinum Card|          Groceries|           debit| 10.69|2018-03-04|
+|    1001368| 3/4/2018|Platinum Card|      Movies & DVDs|           debit| 11.76|2018-03-04|
+|    1001368| 3/4/2018|Platinum Card|        Restaurants|           debit| 42.24|2018-03-04|
+|    1002324| 3/9/2018|Platinum Card|          Groceries|           debit| 20.72|2018-03-09|
+|    1002324| 3/9/2018|Platinum Card|          Groceries|           debit|  5.09|2018-03-09|
+|    1002324| 3/9/2018|Platinum Card|              Music|           debit| 10.69|2018-03-09|
+|    1000210|3/30/2018|  Silver Card|          Groceries|           debit|  9.09|2018-03-30|
++-----------+---------+-------------+-------------------+----------------+------+----------+
+>>> df_opgj=df_joined.groupBy("Customer_No","Date").agg(max("Amount").alias("Amount"))
+>>> df_opgj.show()
++-----------+---------+------+                                                  
+|Customer_No|     Date|Amount|
++-----------+---------+------+
+|    1000501| 1/9/2018| 10.69|
+|    1000531|1/23/2018|309.81|
+|    1002324| 3/9/2018| 20.72|
+|    1000210|3/30/2018|  9.09|
+|    1001863| 2/9/2018|  30.0|
+|    1001368| 3/4/2018| 42.24|
+|    1000654| 2/4/2018| 11.76|
++-----------+---------+------+
+
+PySpark distinct() function is used to drop/remove the duplicate rows (all columns) from DataFrame and dropDuplicates() is used to drop rows based on selected (one or multiple) columns.
+
+
+>>> df_oporderDD=df_filter.select("Category","Customer_No","Date","Amount").orderBy("Customer_No",col("Date").desc(),col("Amount").desc())
+>>> df_oporderDD=.show()
++-------------------+-----------+---------+-------+                             
+|           Category|Customer_No|     Date| Amount|
++-------------------+-----------+---------+-------+
+|          Groceries|    1000210|3/30/2018|   9.09|
+|        Restaurants|    1000210|3/29/2018|  17.64|
+|        Restaurants|    1000210|3/28/2018|  24.98|
+|          Groceries|    1000210|3/28/2018|  16.06|
+|           Internet|    1000210|3/26/2018|  74.99|
+|Credit Card Payment|    1000210|3/23/2018| 559.91|
+|          Groceries|    1000210|3/23/2018|  11.76|
+|         Gas & Fuel|    1000210|3/22/2018|  30.55|
+|           Shopping|    1000210|3/20/2018|  14.97|
+|        Restaurants|    1000210|3/19/2018|  36.48|
+|          Utilities|    1000210|3/19/2018|   35.0|
+|          Fast Food|    1000210|3/17/2018|  23.34|
+|              Music|    1000501| 1/9/2018|  10.69|
+|          Utilities|    1000501| 1/8/2018|   45.0|
+|   Home Improvement|    1000501| 1/8/2018|  15.38|
+|   Home Improvement|    1000501| 1/6/2018|  18.45|
+|        Restaurants|    1000501| 1/5/2018|  25.85|
+|      Movies & DVDs|    1000501| 1/4/2018|  11.76|
+|    Mortgage & Rent|    1000501| 1/2/2018|1247.44|
+|        Restaurants|    1000501| 1/2/2018|  24.22|
++-------------------+-----------+---------+-------+
+only showing top 20 rows
+Code:
+df=spark.read.format("csv").option("header","true").option("inferSchema","true").load("/user/sridevisd617gmail/Spark/personal_data.csv")
+spark.conf.set("spark.sql.legacy.timeParserPolicy","Legacy")
+from pyspark.sql.functions import *
+df_cast=df.withColumn("CastedDate",to_date("Date","MM/dd/yyyy"))
+df_filter=df_cast.filter(col("Transaction Type")=="debit")
+df_filter.registerTempTable("mytable")
+spark.sql("select * from (select *,dense_rank() over (partition by Customer_no order by Date desc,Amount desc ) as rn from mytable)A where rn=1 ").show(10)from pyspark.sql.window import Window
+
+from pyspark.sql.window import Window
+from pyspark.sql.functions import *
+windowspec=Window.partitionBy(col("Customer_No")).orderBy(col("Date").desc(),col("Amount").desc())
+df_wind=df_filter.withColumn("row_num", row_number().over(windowspec))
+df_op=df_wind.filter(col("row_num")==1).drop(col("row_num"))
+df_op.show()
+
+
+Apply line break to every fifth occurrence of Pipe delimiter
+
+>>> df=spark.read.csv("/user/sridevisd617gmail/Spark/linebreakpipedelim.txt")
+>>> df.show(10,False)
++-------------------------------------------------------+
+|_c0                                                    |
++-------------------------------------------------------+
+|Sridevi|BE|2|10000|Bigdata|Aishu|BSc|0|10000|Statistics|
++-------------------------------------------------------+
+>>> df_reg=df.withColumn("regexed",regexp_replace("_c0","(.*?\\|){5}","$0-"))
+>>> df_reg.show(10,False)
++-------------------------------------------------------+--------------------------------------------------------+
+|_c0                                                    |regexed                                                 |
++-------------------------------------------------------+--------------------------------------------------------+
+|Sridevi|BE|2|10000|Bigdata|Aishu|BSc|0|10000|Statistics|Sridevi|BE|2|10000|Bigdata|-Aishu|BSc|0|10000|Statistics|
++-------------------------------------------------------+--------------------------------------------------------+
+>>> split_col=split(df_reg["regexed"],"/|-")
+>>> df1=df_reg.select(split_col).show(10,False)
++-----------------------------------------------------------+
+|split(regexed, -)                                          |
++-----------------------------------------------------------+
+|[Sridevi|BE|2|10000|Bigdata|, Aishu|BSc|0|10000|Statistics]|
++-----------------------------------------------------------+
+>>> df1=df_reg.select(split_col.getItem(0)).show(10,False)
++---------------------------+
+|split(regexed, -)[0]       |
++---------------------------+
+|Sridevi|BE|2|10000|Bigdata |
++---------------------------+
+>>> df1=df_reg.select(split_col.getItem(1)).show(10,False)
++----------------------------+
+|split(regexed, -)[1]        |
++----------------------------+
+|Aishu|BSc|0|10000|Statistics|
++----------------------------+
+
+
+
+>>> split_col=split(df_reg["regexed"],"\|-")
+>>> df1=df_reg.withColumn("cols",split_col)
+>>> df2=df1.select(explode(split_col))
+>>> df2.show(10,False)
++----------------------------+
+|col                         |
++----------------------------+
+|Sridevi|BE|2|10000|Bigdata  |
+|Aishu|BSc|0|10000|Statistics|
++----------------------------+
+>>> split_col=split(df_reg["regexed"],"\|-")
+>>> df1=df_reg.withColumn("cols",split_col)
+>>> df2=df1.select(explode("cols"))
+>>> df2.show(10,False)
++----------------------------+
+|col                         |
++----------------------------+
+|Sridevi|BE|2|10000|Bigdata  |
+|Aishu|BSc|0|10000|Statistics|
++----------------------------+
+
+
+Different modes of DataFrameReader
+Df=spark.read.option(“mode”,”FAILFAST/PERMISSIVE/DROPMALFORMED”)
+                        .csv(filepath,header=True)
+Default mode is PERMISSIVE
+•	Imode (default PERMISSIVE): allows a mode for dealing with corrupt records during parsing. It supports the following case-insensitive modes.
+•	PERMISSIVE : sets other fields to null when it meets a corrupted record, and puts the malformed string into a field configured by columnNameOfCorruptRecord. To keep corrupt records, an user can set a string type field named columnNameOfCorruptRecord in an user-defined schema. If a schema does not have the field, it drops corrupt records during parsing. When a length of parsed CSV tokens is shorter than an expected length of a schema, it sets null for extra fields.
+•	DROPMALFORMED : ignores the whole corrupted records.
+•	FAILFAST : throws an exception when it meets corrupted records.
+Defining our own custom schema:
+from pyspark.sql.types import *
+schm= StructType([
+StructField(“col_1”,StringType(),true),
+StructField(“col_2”,StringType(),true),
+StructField(“col_3”,StringType(),true),
+StructField(“col_4”,StringType(),true),
+])
+Df=spark.read.csv(filepath,header=True,schema=schm)
+Reading the corrupt data into seperate COlumn:
+ Use option mode as permissive
+ Use option ('columnNameOfCorruptRecord","_corrupt_record")
+
+from pyspark.sql.type import *
+schema=StructType([
+StructField(Col1, StringType(),True),
+StructField(Col2, IntegerType(),True),
+StructField(_corrupt_record, StringType(),True)
+])
+df=spark.read\
+.option("columnNameOfCorruptRecord","_corrupt_record")
+.option("mode","PERMISSIVE")
+.csv("file.csv",header=True,schema=schema)
+
+
+Loading a dataframe with multiple delimiter and common between names and header should be handled.
+
+Multidelim.txt
+Name~|Age
+Sri,Ram~|23
+Aishu,Ram~|18
+Ajith,B~|23
+
+>>> df=spark.read.csv("/user/sridevisd617gmail/Spark/Multidelim.txt")
+>>> df.show(10,False)
++---------+
+|_c0      |
++---------+
+|Name~|Age|
+|Sri      |
+|Aishu    |
+|Ajith    |
++---------+
+
+>>> df=spark.read.option("delimiter","~|").csv("/user/sridevisd617gmail/Spark/Multidelim.txt")
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/opt/cloudera/parcels/CDH-6.3.2-1.cdh6.3.2.p0.1605554/lib/spark/python/pyspark/sql/readwriter.py", line 472, in csv
+    return self._df(self._jreader.csv(self._spark._sc._jvm.PythonUtils.toSeq(path)))
+  File "/opt/cloudera/parcels/CDH-6.3.2-1.cdh6.3.2.p0.1605554/lib/spark/python/lib/py4j-0.10.7-src.zip/py4j/java_gateway.py", line 1257, in __call__
+  File "/opt/cloudera/parcels/CDH-6.3.2-1.cdh6.3.2.p0.1605554/lib/spark/python/pyspark/sql/utils.py", line 79, in deco
+    raise IllegalArgumentException(s.split(': ', 1)[1], stackTrace)
+pyspark.sql.utils.IllegalArgumentException: u'Delimiter cannot be more than one character: ~|'
+
+>>> df=spark.read.text("/user/sridevisd617gmail/Spark/Multidelim.txt")
+>>> df.show()
++-------------+                                                                 
+|        value|
++-------------+
+|    Name~|Age|
+|  Sri,Ram~|23|
+|Aishu,Ram~|18|
+|  Ajith,B~|23|
++-------------+
+>>> row1=df.first()[0]
+>>> row1
+u'Name~|Age'
+>>> schema=row1.split("~|")
+>>> schema
+[u'Name', u'Age']
+>>> df_values=df.filter(df["value"] <> row1 )
+>>> df_values.show()
++-------------+                                                                 
+|        value|
++-------------+
+|  Sri,Ram~|23|
+|Aishu,Ram~|18|
+|  Ajith,B~|23|
++-------------+
+
+NOTE:
+>>> split_cols=split(df_values["value"],"\~\|")
+>>> split_cols=split(df_values["value"],"\~|") WILL NOT WORK
+>>> split_cols=split(df_values["value"],"~\|") WILL ONLY WORK
+
+>>> split_cols=split(df_values["value"],"~\|")
+>>> df_values.select(split_cols[0]).show(10,False)
++--------------------+
+|split(value, ~\|)[0]|
++--------------------+
+|Sri,Ram             |
+|Aishu,Ram           |
+|Ajith,B             |
++--------------------+
+>>> df_values.select(split_cols[1]).show(10,False)
++--------------------+
+|split(value, ~\|)[1]|
++--------------------+
+|23                  |
+|18                  |
+|23                  |
++--------------------+
+>>> df_output=df_values.select(split_cols[0].alias("Name"),split_cols[1].alias("Age"))
+>>> df_output.show(10,False)
++---------+---+                                                                 
+|Name     |Age|
++---------+---+
+|Sri,Ram  |23 |
+|Aishu,Ram|18 |
+|Ajith,B  |23 |
++---------+---+
+
+>>> df_values=df.filter(df["value"] <> row1).rdd.map(lambda x: x[0].split('~|')).toDF(schema)
+>>> df_values.show(10,False)                                                    
++---------+---+
+|Name     |Age|
++---------+---+
+|Sri,Ram  |23 |
+|Aishu,Ram|18 |
+|Ajith,B  |23 |
++---------+---+
+
+
+
+Merge two DataFrames in Spark
+1.Withcolumn, union:
+
+
+>>> df1=spark.read.format("csv").option("Header","True").option("delimiter","|").load("/user/sridevisd617gmail/Spark/MergeFile1.csv")
+>>> df1.show()
++---------+---+
+|     Name|Age|
++---------+---+
+|  Sri,Ram| 23|
+|Aishu,Ram| 18|
+|  Ajith,B| 23|
++---------+---+
+>>> df2=spark.read.format("csv").option("Header","True").option("delimiter","|").load("/user/sridevisd617gmail/Spark/MergeFile2.csv")
+>>> df2.show()
++----------+---+------+
+|     Name~|Age|Gender|
++----------+---+------+
+|   Sri,Ram| 23|Female|
+| Aishu,Ram| 18|Female|
+|   Ajith,B| 23|  Male|
+|Santhi,Ram| 46|Female|
+|  Sruthi,S| 23|Female|
++----------+---+------+
+>>> from pyspark.sql.functions import lit
+>>> df1new=df1.withColumn("Gender",lit("null"))
+>>> df1new.union(df2)
+DataFrame[Name: string, Age: string, Gender: string]
+>>> dfmerged=df1new.union(df2)
+>>> dfmerged.show(10,False)
++----------+---+------+                                                         
+|Name      |Age|Gender|
++----------+---+------+
+|Sri,Ram   |23 |null  |
+|Aishu,Ram |18 |null  |
+|Ajith,B   |23 |null  |
+|Sri,Ram   |23 |Female|
+|Aishu,Ram |18 |Female|
+|Ajith,B   |23 |Male  |
+|Santhi,Ram|46 |Female|
+|Sruthi,S  |23 |Female|
++----------+---+------+
+
+2.Schema, union
+
+.option("schema", table_schema) \
+Also, you don't need the .option("inferSchema", "true") \ if you are providing schema definition :)
+>>> from pyspark.sql.types import *
+>>> schema=StructType([ StructField("Name",StringType(),True),StructField("Age",StringType(),True),StructField("Gender",StringType(),True)])
+>>> df2=spark.read.format("csv").option("Header","True").option("delimiter","|").option("schema",schema).load("/user/sridevisd617gmail/Spark/MergeFile2.csv",schema=schema)
+>>> df1=spark.read.format("csv").option("Header","True").option("delimiter","|").option("schema",schema).load("/user/sridevisd617gmail/Spark/MergeFile1.csv",schema=schema)
+>>> df=df1.union(df2)
+>>> df.show()
++----------+---+------+                                                         
+|      Name|Age|Gender|
++----------+---+------+
+|   Sri,Ram| 23|  null|
+| Aishu,Ram| 18|  null|
+|   Ajith,B| 23|  null|
+|   Sri,Ram| 23|Female|
+| Aishu,Ram| 18|Female|
+|   Ajith,B| 23|  Male|
+|Santhi,Ram| 46|Female|
+|  Sruthi,S| 23|Female|
++----------+---+------+
+
+3.Outerjoin
+>>> df1=spark.read.format("csv").option("Header","True").option("delimiter","|").load("/user/sridevisd617gmail/Spark/MergeFile1.csv")
+>>> df2=spark.read.format("csv").option("Header","True").option("delimiter","|").load("/user/sridevisd617gmail/Spark/MergeFile2.csv")
+>>> df=df1.join(df2,on=["Name","Age"],how="outer")
+>>> df=df1.join(df2,on=["Name","Age"],how="outer")
+>>> df.show()
++----------+---+------+                                                         
+|      Name|Age|Gender|
++----------+---+------+
+|  Sruthi,S| 23|Female|
+|Santhi,Ram| 46|Female|
+|   Ajith,B| 23|  Male|
+|   Sri,Ram| 23|Female|
+| Aishu,Ram| 18|Female|
++----------+---+------+
+
+
+
+
+
+
+>>> import pyspark
+>>> df1=spark.read.text("/user/Spark/ip.txt")
+>>> df1.printSchema()
+root
+ |-- value: string (nullable = true)
+>>> df1.show(10,False)
++-----------------------------------------+
+|value                                    |
++-----------------------------------------+
+
+>>> df2.show(10,False)
++------+----------------------------------+
+|Name  |Sentence                          |
++------+----------------------------------+
+|Akshay| Spark is a Spark which is a Spark|
+|Ajay  | Spark is a Spark                 |
++-----------------------------------------+
+
+>>> split_col2 = F.split(df2['Sentence'], ' ')
+>>> df3= df2.select (df2.Name,F.explode(split_col2).alias("word"))
+>>> df3.show()
++------+-----+                                                                  
+|  Name| word|
++------+-----+
+|Akshay|Spark|
+|Akshay|   is|
+|Akshay|    a|
+|Akshay|Spark|
+|Akshay|which|
+|Akshay|   is|
+|Akshay|    a|
+|Akshay|Spark|
+|  Ajay|Spark|
+|  Ajay|   is|
+|  Ajay|    a|
+|  Ajay|Spark|
++------+-----+
+
+>>> df4= df3.groupBy(df3["Name"],df3["Word"]).count().filter(F.lower(df3["Word"]) =='spark')
+>>> df4.show()
++------+-----+-----+
+|  name| word|count|
++------+-----+-----+
+|Akshay|Spark|    3|
+|  Ajay|Spark|    2|
++------+-----+-----+
+
+>>> df4.select(df4["name"],df4["count"]).show(10,False)
++------+-----+
+|name  |count|
++------+-----+
+|Akshay|3    |
+|Ajay  |2    |
++------+-----+
+
+
+Code only:
+import pyspark
+from pyspark.sql import functions as F
+df1=spark.read.text("/user/sridevisd617gmail/Spark/ip.txt")
+df1.printSchema()
+df1.show(10,False)
+split_col = F.split(df1['value'], ':')
+df2= df1.select (split_col.getItem(0).alias("Name"),split_col.getItem(1).alias("Sentence"))
+df2.printSchema()
+df2.show(10,False)
+split_col2 = F.split(df2['Sentence'], ' ')
+df3= df2.select (df2.Name,F.explode(split_col2).alias("Word"))
+df3.show()
+df4= df3.groupBy(df3["Name"],df3["Word"]).count().filter(F.lower(df3["Word"]) =='spark')
+df4.show()
+df4.select(df4["name"],df4["count"]).show(10,False)
