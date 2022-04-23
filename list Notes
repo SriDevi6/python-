@@ -54,4 +54,4 @@ a[::1] -Postive slicing
 a[::-1] -Negative slicing /Reverse Slicing.
 
 When start and stop index is omitted in postive slicing, the start is set to 0 , end is len(a)-1
-When start and stop index is omitted in postive slicing, the start is set to len(a)-1, end is 0
+When start and stop index is omitted in negative slicing, the start is set to len(a)-1, end is 0
